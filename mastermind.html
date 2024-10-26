@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Mind</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #2b4e7c;
+        }
+        .game-container {
+            background-color: rgba(62, 239, 255, 0.257);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 300px;
+            border:1px solid #7fb3f7;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .color-picker {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .color-peg {
+            width: 30px;
+            height: 30px;
+            border:1px solid #000000;
+            border-radius: 100%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .color-peg:hover {
+            transform: scale(1.5);
+        }
+        .guess-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .guess-pegs {
+            display: flex;
+            gap: 5px;
+        }
+        .guess-peg {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+        }
+        .feedback-pegs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3px;
+        }
+        .feedback-peg {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+        .feedback-peg.exact {
+            background-color: black;
+        }
+        .feedback-peg.color {
+            background-color: white;
+            border: 1px solid black;
+        }
+        #submit-guess {
+            display: block;
+            width: 100%;
+            border:1px solid #020f03;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        #submit-guess:hover {
+            background-color: #45a049;
+        }
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Master Mind</h1>
+        <div class="color-picker" id="color-picker"></div>
+        <div id="guesses"></div>
+        <button id="submit-guess">Submit Guess</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const COLORS = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
+        const CODE_LENGTH = 4;
+        const MAX_ATTEMPTS = 10;
+
+        let secretCode = [];
+        let currentGuess = [];
+        let attempts = [];
+        let gameOver = false;
+
+        function initGame() {
+            secretCode = generateSecretCode();
+            currentGuess = [];
+            attempts = [];
+            gameOver = false;
+            renderColorPicker();
+            renderGuesses();
+            updateSubmitButton();
+            setMessage('');
+        }
+
+        function generateSecretCode() {
+            return Array.from({ length: CODE_LENGTH }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
+        }
+
+        function renderColorPicker() {
+            const colorPicker = document.getElementById('color-picker');
+            colorPicker.innerHTML = '';
+            COLORS.forEach(color => {
+                const peg = document.createElement('div');
+                peg.className = 'color-peg';
+                peg.style.backgroundColor = color;
+                peg.addEventListener('click', () => addColorToGuess(color));
+                colorPicker.appendChild(peg);
+            });
+        }
+
+        function addColorToGuess(color) {
+            if (currentGuess.length < CODE_LENGTH && !gameOver) {
+                currentGuess.push(color);
+                renderGuesses();
+                updateSubmitButton();
+            }
+        }
+
+        function renderGuesses() {
+            const guessesContainer = document.getElementById('guesses');
+            guessesContainer.innerHTML = '';
+
+            attempts.forEach(attempt => {
+                const row = createGuessRow(attempt.guess, attempt.feedback);
+                guessesContainer.appendChild(row);
+            });
+
+            if (!gameOver) {
+                const currentRow = createGuessRow(currentGuess);
+                guessesContainer.appendChild(currentRow);
+            }
+        }
+
+        function createGuessRow(guess, feedback = null) {
+            const row = document.createElement('div');
+            row.className = 'guess-row';
+
+            const pegs = document.createElement('div');
+            pegs.className = 'guess-pegs';
+
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                const peg = document.createElement('div');
+                peg.className = 'guess-peg';
+                if (i < guess.length) {
+                    peg.style.backgroundColor = guess[i];
+                }
+                pegs.appendChild(peg);
+            }
+
+            row.appendChild(pegs);
+
+            if (feedback) {
+                const feedbackPegs = document.createElement('div');
+                feedbackPegs.className = 'feedback-pegs';
+                for (let i = 0; i < feedback.exactMatches; i++) {
+                    const peg = document.createElement('div');
+                    peg.className = 'feedback-peg exact';
+                    feedbackPegs.appendChild(peg);
+                }
+                for (let i = 0; i < feedback.colorMatches; i++) {
+                    const peg = document.createElement('div');
+                    peg.className = 'feedback-peg color';
+                    feedbackPegs.appendChild(peg);
+                }
+                row.appendChild(feedbackPegs);
+            }
+
+            return row;
+        }
+
+        function updateSubmitButton() {
+            const submitButton = document.getElementById('submit-guess');
+            submitButton.disabled = currentGuess.length !== CODE_LENGTH;
+        }
+
+        function setMessage(text) {
+            document.getElementById('message').textContent = text;
+        }
+
+        function submitGuess() {
+            if (currentGuess.length === CODE_LENGTH && !gameOver) {
+                const feedback = evaluateGuess(secretCode, currentGuess);
+                attempts.push({ guess: [...currentGuess], feedback });
+                currentGuess = [];
+
+                if (feedback.exactMatches === CODE_LENGTH) {
+                    gameOver = true;
+                    setMessage('Congratulazioni! Hai decifrato il codice.');
+                } else if (attempts.length === MAX_ATTEMPTS) {
+                    gameOver = true;
+                    setMessage(`Game Over. il codice segreto era: ${secretCode.join(', ')}`);
+                }
+
+                renderGuesses();
+                updateSubmitButton();
+            }
+        }
+
+        function evaluateGuess(secret, guess) {
+            let exactMatches = 0;
+            let colorMatches = 0;
+            const secretCopy = [...secret];
+            const guessCopy = [...guess];
+
+            // Count exact matches
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                if (guessCopy[i] === secretCopy[i]) {
+                    exactMatches++;
+                    secretCopy[i] = guessCopy[i] = null;
+                }
+            }
+
+            // Count color matches
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                if (guessCopy[i] !== null) {
+                    const index = secretCopy.indexOf(guessCopy[i]);
+                    if (index !== -1) {
+                        colorMatches++;
+                        secretCopy[index] = null;
+                    }
+                }
+            }
+
+            return { exactMatches, colorMatches };
+        }
+
+        document.getElementById('submit-guess').addEventListener('click', submitGuess);
+
+        initGame();
+    </script>
+</body>
+</html>
