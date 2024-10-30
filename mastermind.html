@@ -1,268 +1,287 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Mind</title>
+    <meta charset="UTF-8"> <!-- Imposta la codifica dei caratteri su UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Imposta la viewport per la responsività -->
+    <title>Master Mind</title> <!-- Titolo della pagina -->
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #2b4e7c;
+            font-family: Arial, sans-serif; /* Imposta il font per il corpo */
+            display: flex; /* Utilizza il flexbox per la disposizione */
+            flex-direction: column; /* Dispone gli elementi in colonna */
+            justify-content: center; /* Centra verticalmente gli elementi */
+            align-items: center; /* Centra orizzontalmente gli elementi */
+            height: 100vh; /* Altezza della vista a 100% della finestra */
+            margin: 0; /* Rimuove il margine di default */
+            background: linear-gradient(28deg, rgba(87,174,191,1) 32%, rgba(30,137,219,1) 45%, rgba(13,62,219,1) 60%, rgba(9,71,159,1) 74%, rgba(8,71,84,1) 100%); /* Sfondo con un gradiente */
+        }
+        #tentativi-max {
+            font-size: 1.5em; /* Dimensione del font per i tentativi massimi */
+            color: #FFFFFF; /* Colore del testo */
+            font-weight: bold; /* Grassetto */
+            margin-bottom: 10px; /* Margine inferiore */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Ombra del testo */
         }
         .game-container {
-            background-color: rgba(62, 239, 255, 0.257);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            width: 300px;
-            border:1px solid #7fb3f7;
+            background-color: rgba(62, 239, 255, 0.257); /* Colore di sfondo semi-trasparente per il contenitore del gioco */
+            border-radius: 10px; /* Angoli arrotondati */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Ombra del contenitore */
+            padding: 20px; /* Padding interno */
+            width: 300px; /* Larghezza del contenitore */
+            text-align: center; /* Allinea il testo al centro */
         }
         h1 {
-            text-align: center;
-            color: #333;
+            color: #333; /* Colore del titolo */
         }
-        .color-picker {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
+        .color-picker, .guess-pegs {
+            display: flex; /* Utilizza il flexbox per la disposizione */
+            justify-content: center; /* Centra orizzontalmente gli elementi */
+            gap: 10px; /* Spazio tra gli elementi */
+            padding-top: 10px; /* Padding superiore */
         }
-        .color-peg {
-            width: 30px;
-            height: 30px;
-            border:1px solid #000000;
-            border-radius: 100%;
-            cursor: pointer;
-            transition: transform 0.1s;
+        .color-peg, .guess-peg {
+            width: 30px; /* Larghezza dei cerchi dei colori */
+            height: 30px; /* Altezza dei cerchi dei colori */
+            border-radius: 50%; /* Rende i cerchi rotondi */
+            border: 1px solid #000; /* Bordo nero */
+            cursor: pointer; /* Cambia il cursore in puntatore */
+            transition: transform 0.1s; /* Transizione per l'effetto hover */
         }
         .color-peg:hover {
-            transform: scale(1.5);
-        }
-        .guess-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            transform: scale(1.3); /* Ingrandisce il cerchio del colore al passaggio del mouse */
         }
         .guess-pegs {
-            display: flex;
-            gap: 5px;
-        }
-        .guess-peg {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            border: 1px solid #ccc;
+            gap: 8px; /* Spazio tra i cerchi delle ipotesi */
+            margin-bottom: 3px; /* Margine inferiore */
         }
         .feedback-pegs {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 3px;
+            display: grid; /* Utilizza la griglia per disporre i feedback */
+            grid-template-columns: repeat(2, 1fr); /* Due colonne per i feedback */
+            gap: 2px; /* Spazio tra gli elementi della griglia */
+            margin-left: 10px; /* Margine a sinistra */
+            justify-content: end; /* Allinea il contenuto a destra */
         }
         .feedback-peg {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ccc;
+            width: 12px; /* Larghezza dei cerchi di feedback */
+            height: 12px; /* Altezza dei cerchi di feedback */
+            border-radius: 50%; /* Rende i cerchi rotondi */
         }
         .feedback-peg.exact {
-            background-color: black;
+            background-color: black; /* Colore di sfondo per i feedback esatti */
         }
         .feedback-peg.color {
-            background-color: white;
-            border: 1px solid black;
+            background-color: white; /* Colore di sfondo per i feedback parziali */
+            border: 1px solid black; /* Bordo nero */
+        }
+        #button-container {
+            display: flex; /* Utilizza il flexbox per i pulsanti */
+            justify-content: space-between; /* Spaziatura tra i pulsanti */
+            margin-top: 10px; /* Margine superiore */
+        }
+        #submit-guess, #remove-last-color {
+            width: 48%; /* Larghezza dei pulsanti */
+            padding: 10px; /* Padding interno */
+            font-size: 16px; /* Dimensione del font */
+            border: none; /* Rimuove il bordo */
+            border-radius: 5px; /* Angoli arrotondati */
+            color: white; /* Colore del testo */
+            cursor: pointer; /* Cambia il cursore in puntatore */
         }
         #submit-guess {
-            display: block;
-            width: 100%;
-            border:1px solid #020f03;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
+            background-color: #4CAF50; /* Colore di sfondo per il pulsante di invio */
         }
         #submit-guess:hover {
-            background-color: #45a049;
+            background-color: #45a049; /* Colore di sfondo per il pulsante di invio al passaggio del mouse */
+        }
+        #remove-last-color {
+            background-color: #f44336; /* Colore di sfondo per il pulsante di cancellazione */
+        }
+        #remove-last-color:hover {
+            background-color: #e53935; /* Colore di sfondo per il pulsante di cancellazione al passaggio del mouse */
         }
         #message {
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
+            font-weight: bold; /* Grassetto per il messaggio */
+            margin-top: 20px; /* Margine superiore */
+        }
+        #replay-btn {
+            margin-top: 20px; /* Margine superiore */
+            padding: 10px 20px; /* Padding interno */
+            font-size: 1em; /* Dimensione del font */
+            font-weight: bold; /* Grassetto */
+            background: linear-gradient(76deg, rgb(255, 81, 0), rgb(221, 255, 0), rgb(238, 130, 206)); /* Gradiente di sfondo */
+            border: none; /* Rimuove il bordo */
+            border-radius: 25px; /* Angoli arrotondati */
+            cursor: pointer; /* Cambia il cursore in puntatore */
+            transition: transform 0.2s; /* Transizione per l'effetto hover */
+            display: none; /* Nasconde il pulsante di riavvio inizialmente */
+            color:black; /* Colore del testo */
+        }
+        #replay-btn:hover {
+            transform: scale(1.05); /* Ingrandisce il pulsante di riavvio al passaggio del mouse */
+        }
+        .guess-row {
+            display: flex; /* Utilizza il flexbox per disporre le righe delle ipotesi */
+            align-items: center; /* Allinea verticalmente al centro */
+            justify-content: space-between; /* Spaziatura tra gli elementi */
         }
     </style>
 </head>
 <body>
+    <div id="tentativi-max">Tentativi Massimi: 10</div> <!-- Mostra il numero massimo di tentativi -->
+
     <div class="game-container">
-        <h1>Master Mind</h1>
-        <div class="color-picker" id="color-picker"></div>
-        <div id="guesses"></div>
-        <button id="submit-guess">Submit Guess</button>
-        <div id="message"></div>
+        <h1>Master Mind</h1> <!-- Titolo del gioco -->
+        <div id="color-picker" class="color-picker"></div> <!-- Selettore di colori -->
+        <div id="guesses"></div> <!-- Contenitore per le ipotesi fatte -->
+
+        <div id="button-container">
+            <button id="submit-guess">Invia Tentativo</button> <!-- Pulsante per inviare l'ipotesi -->
+            <button id="remove-last-color" onclick="removeLastColor()">Cancella</button> <!-- Pulsante per cancellare l'ultima selezione -->
+        </div>
+
+        <div id="message"></div> <!-- Contenitore per messaggi (vittoria, sconfitta, etc.) -->
     </div>
 
-    <script>
-        const COLORS = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
-        const CODE_LENGTH = 4;
-        const MAX_ATTEMPTS = 10;
+    <button id="replay-btn" onclick="initGame()">Rigioca</button> <!-- Pulsante per riavviare il gioco, nascosto inizialmente -->
 
-        let secretCode = [];
-        let currentGuess = [];
-        let attempts = [];
-        let gameOver = false;
+    <script>
+        const COLORS = ['red', 'green', 'blue', 'yellow', 'purple', 'orange']; // Colori disponibili per il gioco
+        const CODE_LENGTH = 4; // Lunghezza del codice da indovinare
+        const MAX_ATTEMPTS = 10; // Numero massimo di tentativi
+
+        let secretCode, currentGuess, attempts, gameOver; // Variabili per il codice segreto, l'ipotesi corrente, i tentativi e lo stato del gioco
 
         function initGame() {
-            secretCode = generateSecretCode();
+            // Inizializza il gioco, genera un codice segreto e ripristina le variabili
+            secretCode = Array.from({ length: CODE_LENGTH }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
             currentGuess = [];
             attempts = [];
             gameOver = false;
-            renderColorPicker();
-            renderGuesses();
-            updateSubmitButton();
-            setMessage('');
-        }
-
-        function generateSecretCode() {
-            return Array.from({ length: CODE_LENGTH }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
+            document.getElementById('message').textContent = ''; // Reset del messaggio
+            document.getElementById('submit-guess').disabled = true; // Disabilita il pulsante di invio
+            document.getElementById('replay-btn').style.display = 'none'; // Nasconde il pulsante di riavvio
+            renderColorPicker(); // Rende il selettore di colori
+            renderGuesses(); // Rende le ipotesi fatte
         }
 
         function renderColorPicker() {
+            // Rende il selettore di colori
             const colorPicker = document.getElementById('color-picker');
-            colorPicker.innerHTML = '';
-            COLORS.forEach(color => {
-                const peg = document.createElement('div');
-                peg.className = 'color-peg';
-                peg.style.backgroundColor = color;
-                peg.addEventListener('click', () => addColorToGuess(color));
-                colorPicker.appendChild(peg);
-            });
+            colorPicker.innerHTML = COLORS.map(color => 
+                `<div class="color-peg" style="background-color:${color}" onclick="addColorToGuess('${color}')"></div>` // Crea un cerchio colorato per ogni colore
+            ).join('');
         }
 
         function addColorToGuess(color) {
-            if (currentGuess.length < CODE_LENGTH && !gameOver) {
-                currentGuess.push(color);
-                renderGuesses();
-                updateSubmitButton();
+            // Aggiunge un colore all'ipotesi corrente
+            if (currentGuess.length < CODE_LENGTH && !gameOver) { // Verifica se non si è superata la lunghezza massima
+                currentGuess.push(color); // Aggiunge il colore
+                renderGuesses(); // Rende le ipotesi aggiornate
+                document.getElementById('submit-guess').disabled = currentGuess.length !== CODE_LENGTH; // Abilita il pulsante se l'ipotesi è completa
+            }
+        }
+
+        function removeLastColor() {
+            // Rimuove l'ultimo colore dall'ipotesi corrente
+            if (currentGuess.length > 0) {
+                currentGuess.pop(); // Rimuove l'ultimo colore
+                renderGuesses(); // Rende le ipotesi aggiornate
+                document.getElementById('submit-guess').disabled = currentGuess.length !== CODE_LENGTH; // Aggiorna lo stato del pulsante
             }
         }
 
         function renderGuesses() {
+            // Rende tutte le ipotesi fatte
             const guessesContainer = document.getElementById('guesses');
-            guessesContainer.innerHTML = '';
-
-            attempts.forEach(attempt => {
-                const row = createGuessRow(attempt.guess, attempt.feedback);
-                guessesContainer.appendChild(row);
-            });
-
+            guessesContainer.innerHTML = attempts.map(attempt =>
+                createGuessRow(attempt.guess, attempt.feedback) // Crea una riga per ogni tentativo
+            ).join('');
+            
             if (!gameOver) {
-                const currentRow = createGuessRow(currentGuess);
-                guessesContainer.appendChild(currentRow);
+                guessesContainer.innerHTML += createGuessRow(currentGuess); // Aggiunge l'ipotesi corrente se il gioco non è finito
             }
         }
 
-        function createGuessRow(guess, feedback = null) {
-            const row = document.createElement('div');
-            row.className = 'guess-row';
-
-            const pegs = document.createElement('div');
-            pegs.className = 'guess-pegs';
-
-            for (let i = 0; i < CODE_LENGTH; i++) {
-                const peg = document.createElement('div');
-                peg.className = 'guess-peg';
-                if (i < guess.length) {
-                    peg.style.backgroundColor = guess[i];
-                }
-                pegs.appendChild(peg);
-            }
-
-            row.appendChild(pegs);
-
-            if (feedback) {
-                const feedbackPegs = document.createElement('div');
-                feedbackPegs.className = 'feedback-pegs';
-                for (let i = 0; i < feedback.exactMatches; i++) {
-                    const peg = document.createElement('div');
-                    peg.className = 'feedback-peg exact';
-                    feedbackPegs.appendChild(peg);
-                }
-                for (let i = 0; i < feedback.colorMatches; i++) {
-                    const peg = document.createElement('div');
-                    peg.className = 'feedback-peg color';
-                    feedbackPegs.appendChild(peg);
-                }
-                row.appendChild(feedbackPegs);
-            }
-
-            return row;
-        }
-
-        function updateSubmitButton() {
-            const submitButton = document.getElementById('submit-guess');
-            submitButton.disabled = currentGuess.length !== CODE_LENGTH;
-        }
-
-        function setMessage(text) {
-            document.getElementById('message').textContent = text;
+        function createGuessRow(guess, feedback = { exactMatches: 0, colorMatches: 0 }) {
+            // Crea una riga per mostrare l'ipotesi e il feedback
+            return `
+                <div class="guess-row">
+                    <div class="guess-pegs">
+                        ${guess.map(color => `<div class="guess-peg" style="background-color:${color}"></div>`).join('')} <!-- Mostra i cerchi colorati dell'ipotesi -->
+                        ${Array(CODE_LENGTH - guess.length).fill('<div class="guess-peg"></div>').join('')} <!-- Cerchi vuoti per completare la lunghezza -->
+                    </div>
+                    <div class="feedback-pegs">
+                        ${Array(feedback.exactMatches).fill('<div class="feedback-peg exact"></div>').join('')} <!-- Cerchi neri per i feedback esatti -->
+                        ${Array(feedback.colorMatches).fill('<div class="feedback-peg color"></div>').join('')} <!-- Cerchi bianchi per i feedback parziali -->
+                    </div>
+                </div>`;
         }
 
         function submitGuess() {
+            // Gestisce l'invio di un'ipotesi
             if (currentGuess.length === CODE_LENGTH && !gameOver) {
-                const feedback = evaluateGuess(secretCode, currentGuess);
-                attempts.push({ guess: [...currentGuess], feedback });
-                currentGuess = [];
+                const feedback = evaluateGuess(secretCode, currentGuess); // Valuta l'ipotesi rispetto al codice segreto
+                attempts.push({ guess: [...currentGuess], feedback }); // Aggiunge il tentativo e il feedback alla lista
+                currentGuess = []; // Reset dell'ipotesi corrente
 
-                if (feedback.exactMatches === CODE_LENGTH) {
-                    gameOver = true;
-                    setMessage('Congratulazioni! Hai decifrato il codice.');
-                } else if (attempts.length === MAX_ATTEMPTS) {
-                    gameOver = true;
-                    setMessage(`Game Over. il codice segreto era: ${secretCode.join(', ')}`);
+                if (feedback.exactMatches === CODE_LENGTH) { // Controlla se l'ipotesi è corretta
+                    gameOver = true; // Finisce il gioco
+                    document.getElementById('message').textContent = 'Congratulazioni! Hai decifrato il codice.'; // Messaggio di vittoria
+                } else if (attempts.length === MAX_ATTEMPTS) { // Controlla se sono stati superati i tentativi massimi
+                    gameOver = true; // Finisce il gioco
+                    document.getElementById('message').textContent = `Game Over. La combinazione segreta era: ${secretCode.map(colorToItalian).join(', ')}`; // Messaggio di sconfitta
                 }
 
-                renderGuesses();
-                updateSubmitButton();
+                renderGuesses(); // Rende tutte le ipotesi
+                document.getElementById('submit-guess').disabled = true; // Disabilita il pulsante di invio
+
+                if (gameOver) {
+                    document.getElementById('replay-btn').style.display = 'inline-block'; // Mostra il pulsante di riavvio
+                }
             }
         }
 
-        function evaluateGuess(secret, guess) {
-            let exactMatches = 0;
-            let colorMatches = 0;
-            const secretCopy = [...secret];
-            const guessCopy = [...guess];
+        function colorToItalian(color) {
+            // Traduci i colori dall'inglese all'italiano
+            const colorTranslations = {
+                red: 'rosso',
+                green: 'verde',
+                blue: 'blu',
+                yellow: 'giallo',
+                purple: 'viola',
+                orange: 'arancione'
+            };
+            return colorTranslations[color]; // Restituisce la traduzione
+        }
 
-            // Count exact matches
+        function evaluateGuess(secret, guess) {
+            // Valuta l'ipotesi rispetto al codice segreto
+            let exactMatches = 0, colorMatches = 0; // Contatori per i feedback
+            const secretCopy = [...secret]; // Copia del codice segreto
+            const guessCopy = [...guess]; // Copia dell'ipotesi
+
             for (let i = 0; i < CODE_LENGTH; i++) {
-                if (guessCopy[i] === secretCopy[i]) {
+                if (guessCopy[i] === secretCopy[i]) { // Controlla per i feedback esatti
                     exactMatches++;
-                    secretCopy[i] = guessCopy[i] = null;
+                    secretCopy[i] = guessCopy[i] = null; // Rimuove i colori già verificati
                 }
             }
 
-            // Count color matches
             for (let i = 0; i < CODE_LENGTH; i++) {
-                if (guessCopy[i] !== null) {
-                    const index = secretCopy.indexOf(guessCopy[i]);
-                    if (index !== -1) {
+                if (guessCopy[i] !== null) { // Verifica solo i colori non ancora verificati
+                    const index = secretCopy.indexOf(guessCopy[i]); // Trova l'indice del colore nella copia del codice segreto
+                    if (index !== -1) { // Se il colore è presente
                         colorMatches++;
-                        secretCopy[index] = null;
+                        secretCopy[index] = null; // Rimuove il colore verificato
                     }
                 }
             }
 
-            return { exactMatches, colorMatches };
+            return { exactMatches, colorMatches }; // Restituisce i feedback
         }
 
-        document.getElementById('submit-guess').addEventListener('click', submitGuess);
-
-        initGame();
+        document.getElementById('submit-guess').onclick = submitGuess; // Associa il pulsante di invio alla funzione submitGuess
+        initGame(); // Inizializza il gioco all'avvio
     </script>
 </body>
 </html>
